@@ -1,5 +1,6 @@
-import express, { type Request, type Response } from "express";
+import { type Request, type Response } from "express";
 import User from "../models/user.js";
+import { ADMIN_ID } from "../constants.js";
 
 const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -27,7 +28,7 @@ const createCurrentUser = async (req: Request, res: Response) => {
     }
 
     const newUser = new User(req.body);
-
+    newUser.role = newUser.email === ADMIN_ID ? "Admin" : "Customer";
     await newUser.save();
     res.status(201).json(newUser.toObject());
   } catch (error) {

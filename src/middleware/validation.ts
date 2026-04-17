@@ -23,3 +23,34 @@ export const validateMyUserRequest = [
   body("country").isString().notEmpty().withMessage("Country must be a string"),
   handleValidationErrors,
 ];
+
+export const validateMyRoleRequest = [
+  body("documents")
+    .isBoolean()
+    .notEmpty()
+    .withMessage("Documents must be a boolean"),
+  body("requestedRole")
+    .isString()
+    .notEmpty()
+    .withMessage("Requested Role must be a string"),
+  body("currentRole")
+    .isString()
+    .notEmpty()
+    .withMessage("Current Role must be a string")
+    .optional(),
+  body("comments")
+    .isString()
+    .notEmpty()
+    .withMessage("Comments must be a string")
+    .optional(),
+  body("userFeedback")
+    .isString()
+    .notEmpty()
+    .withMessage("Feedback must be a string")
+    .optional(),
+  body("reason").isString().notEmpty().withMessage("Reason must be a string"),
+  body("address").isString().notEmpty().withMessage("Address must be a string"),
+  handleValidationErrors,
+];
+
+export const validateMYRestaurantRequest = [];

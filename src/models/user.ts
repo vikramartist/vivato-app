@@ -25,6 +25,16 @@ const userSchema = new Schema(
     country: {
       type: String,
     },
+    restaurants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Restaurant",
+      },
+    ],
+    role: {
+      type: String,
+      enum: ["Customer", "Owner", "Admin"],
+    },
   },
   { timestamps: true },
 );

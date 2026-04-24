@@ -5,16 +5,9 @@ import mongoose from "mongoose";
 import myUserRoute from "./routes/MyUserRoutes.js";
 import myRestaurantRoute from "./routes/MyRestaurantRoute.js";
 import myUserRoleRequest from "./routes/MyUserRoleRequest.js";
-import { v2 as cloudinary } from "cloudinary";
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING as string).then(() => {
   console.log("Connected to database!");
-});
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
-  api_key: process.env.CLOUDINARY_API_KEY as string,
-  api_secret: process.env.CLOUDINARY_API_SECRET as string,
 });
 
 const app = express();

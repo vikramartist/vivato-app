@@ -13,7 +13,7 @@ const roleRequestSchema = new Schema(
     reason: { type: String, required: true },
     comments: { type: String },
     userFeedback: { type: String },
-    address: { type: String, trim: true },
+    address: { type: String },
     documents: { type: Boolean, required: true },
   },
   { timestamps: true },

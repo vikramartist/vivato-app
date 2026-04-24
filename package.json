@@ -21,9 +21,13 @@
     "express-oauth2-jwt-bearer": "^1.7.4",
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
+    "mailtrap": "^4.5.1",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",
+    "nodemailer": "^8.0.5",
+    "nominatim-client": "^3.2.1",
+    "nominatim-geocoder": "^0.1.4",
     "resend": "^6.10.0"
   },
   "devDependencies": {
@@ -31,6 +35,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
+    "@types/nodemailer": "^8.0.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",

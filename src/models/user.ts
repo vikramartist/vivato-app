@@ -34,10 +34,16 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ["Customer", "Owner", "Admin"],
+      default: "Customer",
     },
   },
   { timestamps: true },
 );
+
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ restaurants: -1 });
+userSchema.index({ role: 1 });
+userSchema.index({ role: 1, email: 1 });
 
 const User = mongoose.model("User", userSchema);
 export default User;

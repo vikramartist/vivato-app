@@ -21,7 +21,6 @@
     "express-oauth2-jwt-bearer": "^1.7.4",
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
-    "mailtrap": "^4.5.1",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",

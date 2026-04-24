@@ -8,6 +8,13 @@ const router = express.Router();
 // [GET] api/my/role-requests
 router.get("/", jwtCheck, jwtParse, MyUserRoleRequestController.getRoleRequest);
 
+router.get(
+  "/requests/:requestId",
+  jwtCheck,
+  jwtParse,
+  MyUserRoleRequestController.getRoleRequestById,
+);
+
 // [GET] api/role-requests/requests
 router.get(
   "/requests",
@@ -23,6 +30,22 @@ router.post(
   jwtParse,
   validateMyRoleRequest,
   MyUserRoleRequestController.createRoleRequest,
+);
+
+// [PATCH] api/my/role-requests/:requestId/approve
+router.patch(
+  "/:requestId/approve",
+  jwtCheck,
+  jwtParse,
+  MyUserRoleRequestController.approveRoleRequest,
+);
+
+// [PATCH] api/my/role-requests/:requestId/reject
+router.patch(
+  "/:requestId/reject",
+  jwtCheck,
+  jwtParse,
+  MyUserRoleRequestController.rejectRoleRequest,
 );
 
 export default router;

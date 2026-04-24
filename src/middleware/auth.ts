@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { auth } from "express-oauth2-jwt-bearer";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import { userInfo } from "node:os";
 
 declare global {
   namespace Express {
@@ -47,5 +48,40 @@ export const jwtParse = async (
   } catch (error) {
     console.log("Jwt Parsing Error: ", error);
     return res.sendStatus(401);
+  }
+};
+
+export const validateUserRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    if (user.role?.toLowerCase() !== "owner") {
+      console.warn(
+        `Forbidden: User with role ${user.role} tried to create restaurant`,
+      );
+
+      return res.status(403).json({
+        message: "Forbidden: Only Owners can create restaurants",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Server error in validating user role", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };

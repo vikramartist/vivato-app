@@ -5,6 +5,23 @@ import mongoose from "mongoose";
 import { MAX_RESTAURANT_COUNT } from "../constants.js";
 import { getCoords } from "../services/getCoords.js";
 
+const getMyRestaurants = async (req: Request, res: Response) => {
+  try {
+    const restaurants = await Restaurant.find({ user: req.userId }).sort({
+      createdAt: -1,
+    });
+
+    if (!restaurants) {
+      return res.status(404).json({ message: "Restaurant not found!" });
+    }
+
+    res.status(200).json(restaurants);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to get the restaurants" });
+  }
+};
+
 const createMyRestaurant = async (req: Request, res: Response) => {
   try {
     const {
@@ -17,8 +34,7 @@ const createMyRestaurant = async (req: Request, res: Response) => {
       closingTime,
     } = req.body;
 
-    console.log(req.body);
-    const user = await User.findOne({ user: req.userId });
+    const user = await User.findById(req.userId);
 
     if (!user) {
       return res.status(404).json({ message: "User not found!" });
@@ -88,4 +104,5 @@ const createMyRestaurant = async (req: Request, res: Response) => {
 
 export default {
   createMyRestaurant,
+  getMyRestaurants,
 };

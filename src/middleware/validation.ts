@@ -62,8 +62,7 @@ export const validateMYRestaurantRequest = [
     .notEmpty()
     .withMessage("Restaurant name is required"),
   body("restaurantType")
-    .isString()
-    .contains(["veg", "non-veg", "mixed"])
+    .isIn(["veg", "non-veg", "mixed"])
     .notEmpty()
     .withMessage("Restaurant Type is required"),
   body("description")
@@ -125,8 +124,8 @@ export const validateMYRestaurantRequest = [
     .withMessage("MenuItems calories must be a positive number")
     .optional(),
   body("menuItems.*.foodType")
-    .isString()
-    .contains(["veg", "non-veg"], { ignoreCase: true })
+    .isIn(["veg", "non-veg"])
+    .notEmpty()
     .withMessage("Menu Items foodtype is required"),
   body("menuItems.*.menuImageUrl")
     .isArray()

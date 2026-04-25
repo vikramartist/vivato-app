@@ -5,6 +5,16 @@ import { validateMYRestaurantRequest } from "../middleware/validation.js";
 
 const router = express.Router();
 
+// [GET] /api/my/restaurant
+
+router.get(
+  "/",
+  jwtCheck,
+  jwtParse,
+  validateUserRole,
+  MyRestaurantController.getMyRestaurants,
+);
+
 // [POST] /api/my/restaurant
 router.post(
   "/",

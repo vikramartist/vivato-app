@@ -102,7 +102,41 @@ const createMyRestaurant = async (req: Request, res: Response) => {
   }
 };
 
+const updateMyRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { restaurantId } = req.params;
+    const restaurant = await Restaurant.findById(restaurantId);
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    ((restaurant.restaurantName = req.body.restaurantName),
+      (restaurant.restaurantType = req.body.restaurantType),
+      (restaurant.description = req.body.description),
+      (restaurant.imageUrl = req.body.imageUrl),
+      (restaurant.contact = req.body.contact),
+      (restaurant.address = req.body.address),
+      (restaurant.country = req.body.country),
+      (restaurant.city = req.body.city),
+      (restaurant.zipCode = req.body.zipCode),
+      (restaurant.deliveryPrice = req.body.deliveryPrice),
+      (restaurant.estimatedDeliveryTime = req.body.estimatedDeliveryTime),
+      (restaurant.cuisines = req.body.cuisines),
+      (restaurant.openingTime = req.body.openingTime),
+      (restaurant.closingTime = req.body.closingTime),
+      (restaurant.menuItems = req.body.menuItems),
+      (restaurant.lastUpdated = new Date()),
+      await restaurant.save());
+    res.status(200).json(restaurant);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export default {
   createMyRestaurant,
   getMyRestaurants,
+  updateMyRestaurant,
 };

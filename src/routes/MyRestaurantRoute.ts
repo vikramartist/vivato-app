@@ -20,9 +20,18 @@ router.post(
   "/",
   jwtCheck,
   jwtParse,
-  validateUserRole,
   validateMYRestaurantRequest,
+  validateUserRole,
   MyRestaurantController.createMyRestaurant,
+);
+
+router.put(
+  "/:restaurantId",
+  jwtCheck,
+  jwtParse,
+  validateMYRestaurantRequest,
+  validateUserRole,
+  MyRestaurantController.updateMyRestaurant,
 );
 
 export default router;

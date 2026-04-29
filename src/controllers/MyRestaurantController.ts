@@ -2,13 +2,15 @@ import type { Request, Response } from "express";
 import User from "../models/user.js";
 import Restaurant from "../models/restaurant.js";
 import mongoose from "mongoose";
-import { MAX_RESTAURANT_COUNT } from "../constants.js";
+import { MAX_ADDRESS_UPDATES, MAX_RESTAURANT_COUNT } from "../constants.js";
 import { getCoords } from "../services/getCoords.js";
 
 const getMyRestaurants = async (req: Request, res: Response) => {
   try {
     const restaurants = await Restaurant.find({ user: req.userId }).sort({
       createdAt: -1,
+      lastUpdated: -1,
+      updatedAt: -1,
     });
 
     if (!restaurants) {
@@ -19,6 +21,22 @@ const getMyRestaurants = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Failed to get the restaurants" });
+  }
+};
+
+const getMyRestaurantById = async (req: Request, res: Response) => {
+  try {
+    const { restaurantId } = req.params;
+    const restaurant = await Restaurant.findById(restaurantId);
+
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found!" });
+    }
+
+    res.status(200).json(restaurant);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to get the restaurant" });
   }
 };
 
@@ -71,6 +89,8 @@ const createMyRestaurant = async (req: Request, res: Response) => {
       coordinates,
     };
 
+    newRestaurant.addressUpdateCounter += 1;
+
     //update isOpen logic
 
     const now = new Date();
@@ -105,10 +125,37 @@ const createMyRestaurant = async (req: Request, res: Response) => {
 const updateMyRestaurant = async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
+    const { address, city, country, zipCode } = req.body;
     const restaurant = await Restaurant.findById(restaurantId);
 
     if (!restaurant) {
-      return res.status(404).json({ message: "User not found!" });
+      return res.status(404).json({ message: "Restaurant not found!" });
+    }
+
+    const isAddressChanged =
+      restaurant.address !== address ||
+      restaurant.city !== city ||
+      restaurant.country !== country ||
+      restaurant.zipCode !== zipCode;
+
+    if (
+      isAddressChanged &&
+      restaurant.addressUpdateCounter >= MAX_ADDRESS_UPDATES
+    ) {
+      return res.status(400).json({
+        message: `Address limit reached!. Address, city, country and zipCode can only be updated ${MAX_ADDRESS_UPDATES} times.`,
+      });
+    }
+    if (isAddressChanged) {
+      const coordinates = await getCoords(
+        `${address}, ${city}, ${country}, ${zipCode}`,
+      );
+      restaurant.location = {
+        type: "Point",
+        coordinates,
+      };
+
+      restaurant.addressUpdateCounter += 1;
     }
 
     ((restaurant.restaurantName = req.body.restaurantName),
@@ -139,4 +186,5 @@ export default {
   createMyRestaurant,
   getMyRestaurants,
   updateMyRestaurant,
+  getMyRestaurantById,
 };

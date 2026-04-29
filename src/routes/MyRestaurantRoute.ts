@@ -25,6 +25,14 @@ router.post(
   MyRestaurantController.createMyRestaurant,
 );
 
+router.get(
+  "/:restaurantId",
+  jwtCheck,
+  jwtParse,
+  validateUserRole,
+  MyRestaurantController.getMyRestaurantById,
+);
+
 router.put(
   "/:restaurantId",
   jwtCheck,

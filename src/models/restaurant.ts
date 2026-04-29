@@ -43,6 +43,10 @@ const restaurantSchema = new Schema(
       type: Number,
       default: 0,
     },
+    addressUpdateCounter: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

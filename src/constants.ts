@@ -15,3 +15,4 @@ export const ADMIN_PASS_KEY = process.env.ADMIN_PASS_KEY;
 export const CC = process.env.CC;
 
 export const MAX_RESTAURANT_COUNT = 20;
+export const MAX_ADDRESS_UPDATES = 3;

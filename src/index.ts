@@ -6,6 +6,7 @@ import myUserRoute from "./routes/MyUserRoutes.js";
 import myRestaurantRoute from "./routes/MyRestaurantRoute.js";
 import myUserRoleRequest from "./routes/MyUserRoleRequest.js";
 import restaurantRoute from "./routes/Restaurant.js";
+import orderRoute from "./routes/OrderRoute.js";
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING as string).then(() => {
   console.log("Connected to database!");
@@ -23,6 +24,7 @@ app.use("/api/my/user", myUserRoute);
 app.use("/api/my/role-requests", myUserRoleRequest);
 app.use("/api/my/restaurant", myRestaurantRoute);
 app.use("/api/restaurant", restaurantRoute);
+app.use("/api/v1/order", orderRoute);
 
 app.listen(8000, () => {
   console.log("App running on port 8000");

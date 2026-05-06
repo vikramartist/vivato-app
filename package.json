@@ -17,6 +17,7 @@
     "axios": "^1.15.2",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
+    "crypto": "^1.0.1",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-oauth2-jwt-bearer": "^1.7.4",
@@ -28,6 +29,7 @@
     "nodemailer": "^8.0.5",
     "nominatim-client": "^3.2.1",
     "nominatim-geocoder": "^0.1.4",
+    "razorpay": "^2.9.6",
     "resend": "^6.10.0"
   },
   "devDependencies": {

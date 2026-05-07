@@ -24,6 +24,19 @@ type CheckoutSessionRequest = {
   restaurantId: string;
 };
 
+const getMyOrders = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find({ user: req.userId })
+      .populate("restaurant")
+      .populate("user");
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong!" });
+  }
+};
+
 const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const checkoutSessionRequest: CheckoutSessionRequest = req.body;
@@ -131,10 +144,7 @@ const verifyPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false });
     }
 
-    const order = await Order.findById(orderDbId).populate(
-      "restaurant",
-      "restaurantName",
-    );
+    const order = await Order.findById(orderDbId);
 
     if (!order) {
       return res
@@ -149,29 +159,33 @@ const verifyPayment = async (req: Request, res: Response) => {
       });
     }
 
-    await Order.findByIdAndUpdate(orderDbId, {
-      status: "paid",
-      razorpayPaymentId: razorpay_payment_id,
-      razorpayOrderId: razorpay_order_id,
-    });
+    order.status = "paid";
+    order.razorpayOrderId = razorpay_order_id;
+    order.razorpayPaymentId = razorpay_payment_id;
+
+    await order.save();
+
+    res.status(200).json({ success: true, message: "Payment successfull" });
 
     // send email to user on successful payment
-    await transportClient.sendMail({
-      from: ADMIN_ID,
-      to: [order.deliveryDetails?.email as string],
-      cc: [ADMIN_ID],
-      subject: `Order Received - Vivato`,
-      html: paymentSuccessTemplate({
-        customerName: order.deliveryDetails?.name as string,
-        orderDetails: {
-          restaurantName: order.restaurantName as string,
-          amountPaid: order.totalAmount as number,
-          orderId: order._id.toString(),
-        },
-      }),
-    });
-
-    res.status(201).json({ success: true, message: "Payment successfull" });
+    transportClient
+      .sendMail({
+        from: ADMIN_ID,
+        to: [order.deliveryDetails?.email as string],
+        cc: [ADMIN_ID],
+        subject: `Order Received - Vivato`,
+        html: paymentSuccessTemplate({
+          customerName: order.deliveryDetails?.name as string,
+          email: order.deliveryDetails?.email as string,
+          orderDetails: {
+            restaurantName: order.restaurantName as string,
+            amountPaid: order.totalAmount as number,
+            orderId: order._id.toString(),
+            status: order.status as string,
+          },
+        }),
+      })
+      .catch(console.error);
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -226,4 +240,9 @@ const validateFailure = async (req: Request, res: Response) => {
   }
 };
 
-export default { createCheckoutSession, verifyPayment, validateFailure };
+export default {
+  createCheckoutSession,
+  verifyPayment,
+  validateFailure,
+  getMyOrders,
+};

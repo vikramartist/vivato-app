@@ -4,6 +4,7 @@ import Restaurant from "../models/restaurant.js";
 import mongoose from "mongoose";
 import { MAX_ADDRESS_UPDATES, MAX_RESTAURANT_COUNT } from "../constants.js";
 import { getCoords } from "../services/getCoords.js";
+import Order from "../models/order.js";
 
 const getMyRestaurants = async (req: Request, res: Response) => {
   try {
@@ -37,6 +38,50 @@ const getMyRestaurantById = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Failed to get the restaurant" });
+  }
+};
+
+const getMyRestaurantOrders = async (req: Request, res: Response) => {
+  try {
+    const restaurants = await Restaurant.find({ user: req.userId }).select(
+      "_id",
+    );
+
+    if (!restaurants) {
+      return res.status(404).json({
+        message: `Restaurants not found for the userid:${req.userId}`,
+      });
+    }
+
+    const restaurantIds = restaurants.map((r) => r._id);
+
+    const orders = await Order.find({ restaurant: { $in: restaurantIds } })
+      .populate("restaurant")
+      .populate("user")
+      .sort({ createdAt: -1 });
+
+    const groupedMap = new Map();
+
+    orders.forEach((order) => {
+      const restaurantId = order.restaurant?._id.toString();
+
+      if (!groupedMap.has(restaurantId)) {
+        groupedMap.set(restaurantId, {
+          restaurant: order.restaurant,
+          orders: [],
+          status: order.status,
+        });
+      }
+
+      groupedMap.get(restaurantId).orders.push(order);
+    });
+
+    const groupedOrders = Array.from(groupedMap.values());
+
+    res.status(200).json(groupedOrders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
@@ -182,9 +227,46 @@ const updateMyRestaurant = async (req: Request, res: Response) => {
   }
 };
 
+const updateOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const { restaurantId, orderId } = req.params;
+    const { status } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const restaurant = await Restaurant.findOne({
+      _id: restaurantId,
+      user: req.userId,
+    });
+
+    if (restaurant?.user._id.toString() !== req.userId) {
+      return res.status(401).send();
+    }
+
+    if (order.restaurant?.toString() !== restaurantId) {
+      return res.status(400).json({
+        message: "Order does not belong to this restaurant",
+      });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export default {
   createMyRestaurant,
   getMyRestaurants,
   updateMyRestaurant,
   getMyRestaurantById,
+  getMyRestaurantOrders,
+  updateOrderStatus,
 };

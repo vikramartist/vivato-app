@@ -15,6 +15,20 @@ router.get(
   MyRestaurantController.getMyRestaurants,
 );
 
+router.get(
+  "/orders",
+  jwtCheck,
+  jwtParse,
+  validateUserRole,
+  MyRestaurantController.getMyRestaurantOrders,
+);
+
+router.patch(
+  "/:restaurantId/orders/:orderId/status",
+  jwtCheck,
+  jwtParse,
+  MyRestaurantController.updateOrderStatus,
+);
 // [POST] /api/my/restaurant
 router.post(
   "/",

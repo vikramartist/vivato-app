@@ -1,9 +1,16 @@
 export const paymentSuccessTemplate = ({
   customerName,
+  email,
   orderDetails,
 }: {
   customerName: string;
-  orderDetails: { orderId: string; restaurantName: string; amountPaid: number };
+  email: string;
+  orderDetails: {
+    orderId: string;
+    restaurantName: string;
+    amountPaid: number;
+    status: string;
+  };
 }) => {
   return `
 <!DOCTYPE html>
@@ -52,6 +59,8 @@ export const paymentSuccessTemplate = ({
 
               <p style="font-size:16px;line-height:1.6;">
                 Hi <strong>${customerName}</strong>,
+
+                <strong>Email: ${email}</strong>
               </p>
 
               <p style="font-size:16px;line-height:1.6;">
@@ -94,6 +103,10 @@ export const paymentSuccessTemplate = ({
 
                     <p style="margin:8px 0;">
                       <strong>Amount Paid:</strong> ₹${orderDetails.amountPaid}
+                    </p>
+
+                    <p style="margin:8px 0;">
+                      <strong>Order Status:</strong> ₹${orderDetails.status}
                     </p>
                   </td>
                 </tr>

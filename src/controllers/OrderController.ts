@@ -3,6 +3,9 @@ import Restaurant, { type MenuItemtype } from "../models/restaurant.js";
 import { razorpay } from "../utils/razorpay.js";
 import crypto from "crypto";
 import Order from "../models/order.js";
+import { transportClient } from "../services/nodemailer.js";
+import { ADMIN_ID } from "../constants.js";
+import { paymentSuccessTemplate } from "../services/paymenttemplate.js";
 
 type CheckoutSessionRequest = {
   cartItems: {
@@ -33,30 +36,35 @@ const createCheckoutSession = async (req: Request, res: Response) => {
       throw new Error("Restaurant not found");
     }
 
-    const newOrder = new Order({
-      restaurant: restaurant,
-      user: req.userId,
-      status: "placed",
-      deliveryDetails: checkoutSessionRequest.deliveryDetails,
-      cartItems: checkoutSessionRequest.cartItems,
-      createdAt: new Date(),
-    });
-
     const lineItems = createLineItems(
       checkoutSessionRequest,
       restaurant.menuItems,
     );
 
-    const total = lineItems.reduce((total, item) => {
-      const price = total + item.price * item.quantity;
-      return price - price * item.couponAmount;
+    const subtotal = lineItems.reduce((acc, item) => {
+      const itemTotal = item.price * item.quantity;
+      const discounted = itemTotal - itemTotal * item.couponAmount;
+
+      return acc + discounted;
     }, 0);
 
+    const total = subtotal + restaurant.deliveryPrice;
+
+    const newOrder = new Order({
+      restaurant: restaurant,
+      user: req.userId,
+      status: "pending",
+      deliveryDetails: checkoutSessionRequest.deliveryDetails,
+      cartItems: checkoutSessionRequest.cartItems,
+      totalAmount: total,
+      createdAt: new Date(),
+      restaurantName: restaurant.restaurantName,
+    });
+
     const razorpayOrder = await razorpay.orders.create({
-      amount: total * 100, //paise
+      amount: Math.round(total * 100), //paise
       currency: "INR",
-      receipt: `rcpt_${Date.now()}`,
-      shipping_fee: restaurant.deliveryPrice * 100,
+      receipt: `${newOrder._id}_rcpt`,
     });
 
     await newOrder.save();
@@ -71,7 +79,10 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.log(error);
-    res.status(500).json({ message: error.raw.message });
+    res.status(500).json({
+      message:
+        error?.error?.description || error?.message || "Something went wrong",
+    });
   }
 };
 
@@ -120,9 +131,18 @@ const verifyPayment = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false });
     }
 
-    const order = await Order.findById(orderDbId);
+    const order = await Order.findById(orderDbId).populate(
+      "restaurant",
+      "restaurantName",
+    );
 
-    if (order?.status === "paid") {
+    if (!order) {
+      return res
+        .status(404)
+        .json({ message: `Order not found with ID ${orderDbId}` });
+    }
+
+    if (order.status === "paid") {
       return res.status(200).json({
         success: true,
         message: `Order Payment is already done for this orderId:${orderDbId}`,
@@ -133,6 +153,22 @@ const verifyPayment = async (req: Request, res: Response) => {
       status: "paid",
       razorpayPaymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id,
+    });
+
+    // send email to user on successful payment
+    await transportClient.sendMail({
+      from: ADMIN_ID,
+      to: [order.deliveryDetails?.email as string],
+      cc: [ADMIN_ID],
+      subject: `Order Received - Vivato`,
+      html: paymentSuccessTemplate({
+        customerName: order.deliveryDetails?.name as string,
+        orderDetails: {
+          restaurantName: order.restaurantName as string,
+          amountPaid: order.totalAmount as number,
+          orderId: order._id.toString(),
+        },
+      }),
     });
 
     res.status(201).json({ success: true, message: "Payment successfull" });

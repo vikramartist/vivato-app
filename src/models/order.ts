@@ -4,6 +4,7 @@ const orderSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant" },
+    restaurantName: { type: String, required: true },
     deliveryDetails: {
       email: { type: String, required: true },
       name: { type: String, required: true },
@@ -18,23 +19,22 @@ const orderSchema = new mongoose.Schema(
         name: { type: String, required: true },
       },
     ],
-    totalAmount: Number,
-    razorpayOrderId: String,
-    razorpayPaymentId: String,
-
+    totalAmount: { type: Number, required: true },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
     status: {
       type: String,
       enum: [
-        "placed",
         "paid",
         "failed",
         "pending",
+        "confirmed",
         "preparing",
         "outForDelivery",
         "delivered",
+        "cancelled",
       ],
     },
-
     createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true },

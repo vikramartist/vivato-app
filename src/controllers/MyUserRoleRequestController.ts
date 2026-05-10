@@ -84,6 +84,8 @@ const createRoleRequest = async (req: Request, res: Response) => {
       currentRole: existingUser.role,
     });
 
+    await roleRequest.save();
+
     // send email to user once they send the request
     await transportClient.sendMail({
       from: ADMIN_ID,
@@ -95,10 +97,7 @@ const createRoleRequest = async (req: Request, res: Response) => {
         currentRole: existingUser.role!,
       }),
     });
-
     console.log("Role Change Mail sent successfully");
-
-    await roleRequest.save();
 
     res.status(201).json({
       id: roleRequest._id,

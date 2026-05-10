@@ -23,6 +23,7 @@
     "express-oauth2-jwt-bearer": "^1.7.4",
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
+    "libphonenumber-js": "^1.13.0",
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",

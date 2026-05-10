@@ -38,6 +38,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
+      libphonenumber-js:
+        specifier: ^1.13.0
+        version: 1.13.0
       mongodb:
         specifier: ^7.1.1
         version: 7.1.1
@@ -670,6 +673,9 @@ packages:
   kareem@3.2.0:
     resolution: {integrity: sha512-VS8MWZz/cT+SqBCpVfNN4zoVz5VskR3N4+sTmUXme55e9avQHntpwpNq0yjnosISXqwJ3AQVjlbI4Dyzv//JtA==}
     engines: {node: '>=18.0.0'}
+
+  libphonenumber-js@1.13.0:
+    resolution: {integrity: sha512-N12qmdu0BM1wVNkMKYOoJR4fTOZDblrKNsOqGbKoUZrYsYLX2zx1O5X+vhK0WJPBU/+/kh9tCr8x0a7t1puGWg==}
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -1628,6 +1634,8 @@ snapshots:
       safe-buffer: 5.2.1
 
   kareem@3.2.0: {}
+
+  libphonenumber-js@1.13.0: {}
 
   lodash.includes@4.3.0: {}
 

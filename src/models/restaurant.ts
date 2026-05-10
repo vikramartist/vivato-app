@@ -59,7 +59,6 @@ const restaurantSchema = new Schema(
 );
 
 restaurantSchema.index({ location: "2dsphere" });
-restaurantSchema.index({ location: "2dsphere", isOpen: 1 });
 restaurantSchema.index({
   restaurantType: 1,
   city: 1,

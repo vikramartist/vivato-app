@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 const handleValidationErrors = async (
   req: Request,
@@ -15,6 +16,36 @@ const handleValidationErrors = async (
 
 export const validateMyUserRequest = [
   body("name").isString().notEmpty().withMessage("Name must be a string"),
+  body("contact").custom((value) => {
+    if (!isValidPhoneNumber(value)) {
+      throw new Error("Invalid phoen number");
+    }
+    return true;
+  }),
+  body("coordinates.type")
+    .exists()
+    .withMessage("Coordinates type is required")
+    .equals("Point")
+    .withMessage("Coordinates type must be 'Point'")
+    .optional(),
+
+  // coordinates must be an array
+  body("coordinates.coordinates")
+    .isArray({ min: 2, max: 2 })
+    .withMessage("Coordinates must be [lng, lat] array")
+    .optional(),
+
+  // longitude
+  body("coordinates.coordinates.0")
+    .isFloat({ min: -180, max: 180 })
+    .withMessage("Longitude must be between -180 and 180")
+    .optional(),
+
+  // latitude
+  body("coordinates.coordinates.1")
+    .isFloat({ min: -90, max: 90 })
+    .withMessage("Latitude must be between -90 and 90")
+    .optional(),
   body("addressLine1")
     .isString()
     .notEmpty()

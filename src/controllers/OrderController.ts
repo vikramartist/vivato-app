@@ -168,24 +168,22 @@ const verifyPayment = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: "Payment successfull" });
 
     // send email to user on successful payment
-    transportClient
-      .sendMail({
-        from: ADMIN_ID,
-        to: [order.deliveryDetails?.email as string],
-        cc: [ADMIN_ID],
-        subject: `Order Received - Vivato`,
-        html: paymentSuccessTemplate({
-          customerName: order.deliveryDetails?.name as string,
-          email: order.deliveryDetails?.email as string,
-          orderDetails: {
-            restaurantName: order.restaurantName as string,
-            amountPaid: order.totalAmount as number,
-            orderId: order._id.toString(),
-            status: order.status as string,
-          },
-        }),
-      })
-      .catch(console.error);
+    await transportClient.sendMail({
+      from: ADMIN_ID,
+      to: [order.deliveryDetails?.email as string],
+      cc: [ADMIN_ID],
+      subject: `Order Received - Vivato`,
+      html: paymentSuccessTemplate({
+        customerName: order.deliveryDetails?.name as string,
+        email: order.deliveryDetails?.email as string,
+        orderDetails: {
+          restaurantName: order.restaurantName as string,
+          amountPaid: order.totalAmount as number,
+          orderId: order._id.toString(),
+          status: order.status as string,
+        },
+      }),
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({

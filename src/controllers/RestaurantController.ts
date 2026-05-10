@@ -29,6 +29,33 @@ const getRestaurantById = async (req: Request, res: Response) => {
   }
 };
 
+const searchNearbyRestaurants = async (req: Request, res: Response) => {
+  try {
+    const { lat, lng, distance } = req.query;
+
+    const maxDistance = distance ? Number(distance) : 10000;
+
+    const restaurants = await Restaurant.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: "Point",
+            coordinates: [Number(lng), Number(lat)],
+          },
+          distanceField: "distance",
+          spherical: true,
+          maxDistance: maxDistance,
+        },
+      },
+    ]);
+
+    res.status(200).json(restaurants);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Something went wrong!" });
+  }
+};
+
 const searchRestaurants = async (req: Request, res: Response) => {
   try {
     const city = req.params.city as string;
@@ -84,7 +111,6 @@ const searchRestaurants = async (req: Request, res: Response) => {
       .skip(skip)
       .limit(pageSize)
       .lean();
-
     const total = await Restaurant.countDocuments(query);
 
     const response = {
@@ -103,4 +129,9 @@ const searchRestaurants = async (req: Request, res: Response) => {
   }
 };
 
-export default { searchRestaurants, getRestaurantById, getAllRestaurants };
+export default {
+  searchRestaurants,
+  getRestaurantById,
+  getAllRestaurants,
+  searchNearbyRestaurants,
+};

@@ -13,6 +13,10 @@ const userSchema = new Schema(
     name: {
       type: String,
     },
+    contact: {
+      required: true,
+      type: String,
+    },
     profile_pic: {
       type: String,
     },
@@ -36,14 +40,26 @@ const userSchema = new Schema(
       enum: ["Customer", "Owner", "Admin"],
       default: "Customer",
     },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
+    },
   },
   { timestamps: true },
 );
-
+userSchema.index({ location: "2dsphere" });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ restaurants: -1 });
 userSchema.index({ role: 1 });
 userSchema.index({ role: 1, email: 1 });
+userSchema.index({ contact: 1 });
 
 const User = mongoose.model("User", userSchema);
 export default User;

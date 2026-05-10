@@ -20,6 +20,7 @@ type CheckoutSessionRequest = {
     addressLine1: string;
     city: string;
     country: string;
+    contact: string;
   };
   restaurantId: string;
 };
@@ -28,7 +29,8 @@ const getMyOrders = async (req: Request, res: Response) => {
   try {
     const orders = await Order.find({ user: req.userId })
       .populate("restaurant")
-      .populate("user");
+      .populate("user")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(orders);
   } catch (error) {
@@ -165,8 +167,6 @@ const verifyPayment = async (req: Request, res: Response) => {
 
     await order.save();
 
-    res.status(200).json({ success: true, message: "Payment successfull" });
-
     // send email to user on successful payment
     await transportClient.sendMail({
       from: ADMIN_ID,
@@ -176,14 +176,21 @@ const verifyPayment = async (req: Request, res: Response) => {
       html: paymentSuccessTemplate({
         customerName: order.deliveryDetails?.name as string,
         email: order.deliveryDetails?.email as string,
+        contact: order.deliveryDetails?.contact as string,
+        address: (order.deliveryDetails?.addressLine1! +
+          order.deliveryDetails?.city +
+          order.deliveryDetails?.country) as string,
         orderDetails: {
           restaurantName: order.restaurantName as string,
           amountPaid: order.totalAmount as number,
           orderId: order._id.toString(),
           status: order.status as string,
+          createdAt: order.createdAt,
         },
       }),
     });
+
+    res.status(200).json({ success: true, message: "Payment successfull" });
   } catch (error) {
     console.log(error);
     res.status(500).json({

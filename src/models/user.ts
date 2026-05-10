@@ -1,4 +1,4 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -14,7 +14,6 @@ const userSchema = new Schema(
       type: String,
     },
     contact: {
-      required: true,
       type: String,
     },
     profile_pic: {
@@ -44,11 +43,9 @@ const userSchema = new Schema(
       type: {
         type: String,
         enum: ["Point"],
-        required: true,
       },
       coordinates: {
         type: [Number],
-        required: true,
       },
     },
   },

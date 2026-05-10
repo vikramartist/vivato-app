@@ -11,6 +11,7 @@ const orderSchema = new mongoose.Schema(
       addressLine1: { type: String, required: true },
       city: { type: String, required: true },
       country: { type: String, required: true },
+      contact: { type: String, required: true },
     },
     cartItems: [
       {
@@ -35,7 +36,7 @@ const orderSchema = new mongoose.Schema(
         "cancelled",
       ],
     },
-    createdAt: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now() },
   },
   { timestamps: true },
 );

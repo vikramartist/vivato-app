@@ -1,15 +1,20 @@
 export const paymentSuccessTemplate = ({
   customerName,
   email,
+  contact,
+  address,
   orderDetails,
 }: {
   customerName: string;
   email: string;
+  contact: string;
+  address: string;
   orderDetails: {
     orderId: string;
     restaurantName: string;
     amountPaid: number;
     status: string;
+    createdAt: Date;
   };
 }) => {
   return `
@@ -57,10 +62,12 @@ export const paymentSuccessTemplate = ({
                 Payment Successful 🎉
               </h2>
 
-              <p style="font-size:16px;line-height:1.6;">
+              <p style="font-size:16px;line-height:1.6;display:flex;">
                 Hi <strong>${customerName}</strong>,
 
                 <strong>Email: ${email}</strong>
+                <strong>Contact: ${contact}</strong>
+                <strong>Address: ${address}</strong>
               </p>
 
               <p style="font-size:16px;line-height:1.6;">
@@ -106,7 +113,11 @@ export const paymentSuccessTemplate = ({
                     </p>
 
                     <p style="margin:8px 0;">
-                      <strong>Order Status:</strong> ₹${orderDetails.status}
+                      <strong>Order Status:</strong> ${orderDetails.status.toUpperCase()}
+                    </p>
+
+                    <p style="margin:8px 0;">
+                      <strong>Order Created:</strong> ${orderDetails.createdAt}
                     </p>
                   </td>
                 </tr>

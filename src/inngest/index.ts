@@ -5,7 +5,10 @@ import { newRoleRequest } from "../services/template.js";
 import { approveOrDeclineRoleRequest } from "../services/approveOrDeclinetemplate.js";
 import { paymentSuccessTemplate } from "../services/paymenttemplate.js";
 
-export const inngest = new Inngest({ id: "vivato" });
+export const inngest = new Inngest({
+  id: "vivato",
+  eventKey: process.env.INNGEST_EVENT_KEY as string,
+});
 
 const roleRequestMail = inngest.createFunction(
   { id: "role-request-mail", triggers: [{ event: "role/requested" }] },

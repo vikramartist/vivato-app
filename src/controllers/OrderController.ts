@@ -3,9 +3,7 @@ import Restaurant, { type MenuItemtype } from "../models/restaurant.js";
 import { razorpay } from "../utils/razorpay.js";
 import crypto from "crypto";
 import Order from "../models/order.js";
-import { transportClient } from "../services/nodemailer.js";
-import { ADMIN_ID } from "../constants.js";
-import { paymentSuccessTemplate } from "../services/paymenttemplate.js";
+import { inngest } from "../inngest/index.js";
 
 type CheckoutSessionRequest = {
   cartItems: {
@@ -168,27 +166,21 @@ const verifyPayment = async (req: Request, res: Response) => {
     await order.save();
 
     // send email to user on successful payment
-    await transportClient.sendMail({
-      from: ADMIN_ID,
-      to: [order.deliveryDetails?.email as string],
-      cc: [ADMIN_ID],
-      subject: `Order Received - Vivato`,
-      html: paymentSuccessTemplate({
-        customerName: order.deliveryDetails?.name as string,
-        email: order.deliveryDetails?.email as string,
-        contact: order.deliveryDetails?.contact as string,
-        address: (order.deliveryDetails?.addressLine1! +
-          order.deliveryDetails?.city +
-          order.deliveryDetails?.country) as string,
-        orderDetails: {
-          restaurantName: order.restaurantName as string,
-          amountPaid: order.totalAmount as number,
-          orderId: order._id.toString(),
-          status: order.status as string,
+    inngest
+      .send({
+        name: "payment/success",
+        data: {
+          deliveryDetails: order.deliveryDetails,
+          id: order._id,
+          status: order.status,
           createdAt: order.createdAt,
+          restaurantName: order.restaurantName,
+          totalAmount: order.totalAmount,
         },
-      }),
-    });
+      })
+      .catch((error) => {
+        console.error(`[INNGEST_ERROR] in payment success mailer:${error}`);
+      });
 
     res.status(200).json({ success: true, message: "Payment successfull" });
   } catch (error) {

@@ -9,7 +9,7 @@ export const transportClient = nodemailer.createTransport({
     user: ADMIN_ID,
     pass: ADMIN_PASS_KEY,
   },
-  connectionTimeout: 10000,
+  connectionTimeout: 30000,
   pool: true,
 });
 

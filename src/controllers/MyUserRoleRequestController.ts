@@ -178,9 +178,6 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
 
     const { comments } = req.body;
 
-    console.log(req.body);
-    console.log(req.params);
-
     const updatedRequest = await RoleRequest.findByIdAndUpdate(
       requestId,
       {
@@ -192,15 +189,11 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
       { new: true },
     );
 
-    console.log("updatedRequest:", updatedRequest);
-
     if (!updatedRequest) {
       return res.status(404).json({
         message: `Role request with the request ID:${requestId} not found`,
       });
     }
-
-    console.log(updatedRequest);
 
     const user = await User.findByIdAndUpdate(
       updatedRequest.userId,

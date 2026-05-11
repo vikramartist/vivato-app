@@ -11,6 +11,11 @@ export const transportClient = nodemailer.createTransport({
   },
   connectionTimeout: 30000,
   pool: true,
+  tls: {
+    servername: "smtp.gmail.com",
+  },
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 transportClient.verify((error, success) => {

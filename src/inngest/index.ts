@@ -29,7 +29,6 @@ const roleRequestMail = inngest.createFunction(
       });
     } catch (error) {
       console.error("Mail failed:", error);
-      throw error;
     }
   },
 );
@@ -54,7 +53,6 @@ const approvalMail = inngest.createFunction(
       });
     } catch (error) {
       console.error("Mail failed:", error);
-      throw error;
     }
   },
 );
@@ -79,7 +77,6 @@ const declineMail = inngest.createFunction(
       });
     } catch (error) {
       console.error("Mail failed:", error);
-      throw error;
     }
   },
 );
@@ -120,7 +117,6 @@ const paymentSuccessMail = inngest.createFunction(
       });
     } catch (error) {
       console.error("Mail failed:", error);
-      throw error;
     }
   },
 );

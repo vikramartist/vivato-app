@@ -1,27 +1,16 @@
 import nodemailer from "nodemailer";
-import { ADMIN_ID, ADMIN_PASS_KEY } from "../constants.js";
+import { BREVO_SMTP_PASSWORD, BREVO_SMTP_USER } from "../constants.js";
 
 export const transportClient = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "smtp-relay.brevo.com",
   port: 587,
   secure: false,
   auth: {
-    user: ADMIN_ID,
-    pass: ADMIN_PASS_KEY,
+    user: BREVO_SMTP_USER,
+    pass: BREVO_SMTP_PASSWORD,
   },
-  connectionTimeout: 30000,
+  connectionTimeout: 60000,
   pool: true,
-  tls: {
-    servername: "smtp.gmail.com",
-  },
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
-
-transportClient.verify((error, success) => {
-  if (error) {
-    console.error("SMTP error:", error);
-  } else {
-    console.log("SMTP server is ready!");
-  }
+  greetingTimeout: 60000,
+  socketTimeout: 60000,
 });

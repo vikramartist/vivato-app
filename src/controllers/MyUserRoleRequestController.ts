@@ -1,10 +1,7 @@
 import type { Request, Response } from "express";
 import User from "../models/user.js";
 import RoleRequest from "../models/roleRequest.js";
-import { ADMIN_ID } from "../constants.js";
-import { newRoleRequest } from "../services/template.js";
-import { approveOrDeclineRoleRequest } from "../services/approveOrDeclinetemplate.js";
-import { transportClient } from "../services/nodemailer.js";
+import { inngest } from "../inngest/index.js";
 
 const getRoleRequest = async (req: Request, res: Response) => {
   try {
@@ -51,8 +48,15 @@ const getRoleRequest = async (req: Request, res: Response) => {
 
 const createRoleRequest = async (req: Request, res: Response) => {
   try {
-    const { fullAddress, reason, documents, requestedRole, feedback } =
-      req.body;
+    const {
+      fullAddress,
+      reason,
+      documents,
+      requestedRole,
+      feedback,
+      name,
+      email,
+    } = req.body;
 
     const existingUser = await User.findById(req.userId);
 
@@ -87,17 +91,19 @@ const createRoleRequest = async (req: Request, res: Response) => {
     await roleRequest.save();
 
     // send email to user once they send the request
-    await transportClient.sendMail({
-      from: ADMIN_ID,
-      to: [existingUser.email],
-      cc: [ADMIN_ID],
-      subject: `Request for Role Change | ${roleRequest.currentRole} - ${roleRequest.requestedRole}`,
-      html: newRoleRequest({
-        name: existingUser.name!,
-        currentRole: existingUser.role!,
-      }),
-    });
-    console.log("Role Change Mail sent successfully");
+    inngest
+      .send({
+        name: "role/requested",
+        data: {
+          email: email as string,
+          name: name as string,
+          currentRole: existingUser.role as string,
+          requestedRole: roleRequest.requestedRole as string,
+        },
+      })
+      .catch((error) => {
+        console.error(`[INNGEST_ERROR] in role request mailer:${error}`);
+      });
 
     res.status(201).json({
       id: roleRequest._id,
@@ -172,6 +178,9 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
 
     const { comments } = req.body;
 
+    console.log(req.body);
+    console.log(req.params);
+
     const updatedRequest = await RoleRequest.findByIdAndUpdate(
       requestId,
       {
@@ -183,31 +192,39 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
       { new: true },
     );
 
+    console.log("updatedRequest:", updatedRequest);
+
     if (!updatedRequest) {
       return res.status(404).json({
         message: `Role request with the request ID:${requestId} not found`,
       });
     }
 
-    const user = await User.findByIdAndUpdate(updatedRequest.userId, {
-      role: updatedRequest.requestedRole,
-    });
+    console.log(updatedRequest);
+
+    const user = await User.findByIdAndUpdate(
+      updatedRequest.userId,
+      {
+        role: updatedRequest.requestedRole,
+      },
+      { returnDocument: "after" },
+    ).lean();
 
     // send email to user once they send the request
-    await transportClient.sendMail({
-      from: ADMIN_ID,
-      to: [user?.email!],
-      cc: [ADMIN_ID],
-      subject: `Approval for Role Change Request | ${updatedRequest.requestedRole}`,
-      html: approveOrDeclineRoleRequest({
-        name: user?.name!,
-        currentRole: updatedRequest.requestedRole!,
-        requestStatus: updatedRequest.status!,
-        comments: updatedRequest.comments!,
-      }),
-    });
-
-    console.log("Approval Message Sent successfully");
+    inngest
+      .send({
+        name: "role/approve",
+        data: {
+          email: user?.email as string,
+          name: user?.name as string,
+          requestedRole: user?.role as string,
+          status: updatedRequest.status,
+          comments: updatedRequest.comments,
+        },
+      })
+      .catch((error) => {
+        console.error(`[INNGEST_ERROR] in role request mailer:${error}`);
+      });
 
     res.status(200).json(updatedRequest);
   } catch (error) {
@@ -244,19 +261,20 @@ export const rejectRoleRequest = async (req: Request, res: Response) => {
     });
 
     // send email to user once they send the request
-    await transportClient.sendMail({
-      from: ADMIN_ID,
-      to: [user?.email!],
-      cc: [ADMIN_ID],
-      subject: `Rejection for Role Change Request | ${rejectedRequest.requestedRole} Rejected`,
-      html: approveOrDeclineRoleRequest({
-        name: user?.name!,
-        currentRole: rejectedRequest.requestedRole!,
-        requestStatus: rejectedRequest.status!,
-        comments: rejectedRequest.comments!,
-      }),
-    });
-    console.log("Rejection Message Sent successfully");
+    inngest
+      .send({
+        name: "role/decline",
+        data: {
+          email: user?.email as string,
+          name: user?.name as string,
+          requestedRole: user?.role as string,
+          status: rejectedRequest.status,
+          comments: rejectedRequest.comments,
+        },
+      })
+      .catch((error) => {
+        console.error(`[INNGEST_ERROR] in role request mailer:${error}`);
+      });
     res.status(200).json(rejectedRequest);
   } catch (error) {
     console.log(error);

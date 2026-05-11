@@ -4,6 +4,7 @@ export const paymentSuccessTemplate = ({
   contact,
   address,
   orderDetails,
+  callbackUrl,
 }: {
   customerName: string;
   email: string;
@@ -16,6 +17,7 @@ export const paymentSuccessTemplate = ({
     status: string;
     createdAt: Date;
   };
+  callbackUrl: string;
 }) => {
   return `
 <!DOCTYPE html>
@@ -122,6 +124,13 @@ export const paymentSuccessTemplate = ({
                   </td>
                 </tr>
               </table>
+
+              <div style="text-align: center; margin: 25px 0;">
+                <a href=${callbackUrl}/order-status
+                  style="background: #ff7a18; color: #ffffff; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: bold;">
+                  Your Order Status 🍽️
+                </a>
+              </div>
 
               <p
                 style="

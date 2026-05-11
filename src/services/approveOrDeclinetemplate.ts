@@ -3,11 +3,13 @@ export const approveOrDeclineRoleRequest = ({
   currentRole,
   requestStatus,
   comments,
+  callbackUrl,
 }: {
   name: string;
   currentRole: string;
   requestStatus: string;
   comments: string;
+  callbackUrl: string;
 }) => {
   return `
   <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
@@ -20,11 +22,11 @@ export const approveOrDeclineRoleRequest = ({
 
       <!-- Body -->
       <div style="padding: 25px;">
-        <h2 style="color: #333;">Hey ${name || "there"}, 👋</h2>
+        <h2 style="color: #333;">Hey ${name ?? "there"}, 👋</h2>
         
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
           We&apos;ve ${requestStatus === "approved" ? "approved " : "rejected "} your request for Role Change
-          <strong>${currentRole || "Customer"}</strong>
+          <strong>${currentRole ?? "Customer"}</strong>
         </p>
 
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
@@ -39,16 +41,17 @@ export const approveOrDeclineRoleRequest = ({
         </div>
 
         <p style="color: #555; font-size: 14px;">
-          Comments: Refer bewlo for your comments on the Request
-
-          <p style="margin: 0; font-size: 14px; color: #333;">
-          ${requestStatus === "approved" ? `\n\nApproval Comment\n\n\n${comments}\n\n` : `\n\nReason for Rejection\n\n\n${comments}\n\n`}
-          </p>
+          Comments: Refer below for your comments on the Request
+          <div style="margin: 20px 0; padding: 15px; background-color: #fff4e6; border-left: 5px solid #ff7a18; border-radius: 5px;">
+            <p style="margin: 0; font-size: 14px; color: #333;">
+            ${requestStatus === "approved" ? `${comments}` : `${comments}`}
+            </p>
+          </div>
         </p>
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 25px 0;">
-          <a href="http://localhost:5173"
+          <a href=${callbackUrl}
             style="background: #ff7a18; color: #ffffff; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: bold;">
             Visit Our Website 🌐
           </a>

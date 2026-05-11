@@ -1,9 +1,11 @@
 export const newRoleRequest = ({
   name,
   currentRole,
+  callbackUrl,
 }: {
   name: string;
   currentRole: string;
+  callbackUrl: string;
 }) => {
   return `
   <div style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
@@ -16,11 +18,11 @@ export const newRoleRequest = ({
 
       <!-- Body -->
       <div style="padding: 25px;">
-        <h2 style="color: #333;">Hey ${name || "there"}, 👋</h2>
+        <h2 style="color: #333;">Hey ${name ?? "User"}, 👋</h2>
         
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
           We&apos;ve received your request to upgrade your role from 
-          <strong>${currentRole || "Customer"}</strong> to 
+          <strong>${currentRole}</strong> to 
           <strong>Owner</strong>.
         </p>
 
@@ -42,7 +44,7 @@ export const newRoleRequest = ({
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 25px 0;">
-          <a href="http://localhost:5173"
+          <a href=${callbackUrl}
             style="background: #ff7a18; color: #ffffff; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: bold;">
             Visit Our Website 🌐
           </a>

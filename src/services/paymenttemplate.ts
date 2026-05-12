@@ -64,13 +64,17 @@ export const paymentSuccessTemplate = ({
                 Payment Successful 🎉
               </h2>
 
-              <p style="font-size:16px;line-height:1.6;display:flex;">
-                Hi <strong>${customerName}</strong>,
+              <div style="font-size:16px;line-height:1.6;">
+                <p>
+                  Hi <strong> ${customerName}</strong>
+                </p>,
 
-                <strong>Email: ${email}</strong>
-                <strong>Contact: ${contact}</strong>
-                <strong>Address: ${address}</strong>
-              </p>
+                <p>
+                  <strong>Email: ${email}</strong></br>
+                  <strong>Contact: ${contact}</strong></br>
+                  <strong>Address: ${address}</strong>
+                </p>
+              </div>
 
               <p style="font-size:16px;line-height:1.6;">
                 Your payment was successful and your order has been sent to the restaurant for confirmation.

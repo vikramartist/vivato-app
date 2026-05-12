@@ -1,9 +1,9 @@
 import { Inngest, type InngestFunction } from "inngest";
-import { transportClient } from "../services/nodemailer.js";
-import { ADMIN_ID, CALLBACK_URL } from "../constants.js";
+import { CALLBACK_URL } from "../constants.js";
 import { newRoleRequest } from "../services/template.js";
 import { approveOrDeclineRoleRequest } from "../services/approveOrDeclinetemplate.js";
 import { paymentSuccessTemplate } from "../services/paymenttemplate.js";
+import { sendMail } from "../services/mailersend.js";
 
 export const inngest = new Inngest({
   id: "vivato",
@@ -16,10 +16,9 @@ const roleRequestMail = inngest.createFunction(
     try {
       const { email, name, currentRole, requestedRole } = event.data;
 
-      await transportClient.sendMail({
-        from: ADMIN_ID,
-        to: [email],
-        cc: [ADMIN_ID],
+      await sendMail({
+        toEmail: email,
+        toName: name,
         subject: `Request for Role Change | ${currentRole} - ${requestedRole}`,
         html: newRoleRequest({
           name: name,
@@ -38,10 +37,9 @@ const approvalMail = inngest.createFunction(
   async ({ event }) => {
     try {
       const { email, requestedRole, name, status, comments } = event.data;
-      await transportClient.sendMail({
-        from: ADMIN_ID,
-        to: [email],
-        cc: [ADMIN_ID],
+      await sendMail({
+        toEmail: email,
+        toName: name,
         subject: `Approval for Role Change Request | ${requestedRole}`,
         html: approveOrDeclineRoleRequest({
           name: name,
@@ -62,10 +60,9 @@ const declineMail = inngest.createFunction(
   async ({ event }) => {
     try {
       const { email, requestedRole, name, status, comments } = event.data;
-      await transportClient.sendMail({
-        from: ADMIN_ID,
-        to: [email],
-        cc: [ADMIN_ID],
+      await sendMail({
+        toEmail: email,
+        toName: name,
         subject: `Rejection for Role Change Request | ${requestedRole}`,
         html: approveOrDeclineRoleRequest({
           name: name,
@@ -93,10 +90,9 @@ const paymentSuccessMail = inngest.createFunction(
         restaurantName,
         totalAmount,
       } = event.data;
-      await transportClient.sendMail({
-        from: ADMIN_ID,
-        to: [deliveryDetails?.email as string],
-        cc: [ADMIN_ID],
+      await sendMail({
+        toEmail: deliveryDetails?.email as string,
+        toName: deliveryDetails?.name as string,
         subject: `Order Received - Vivato`,
         html: paymentSuccessTemplate({
           customerName: deliveryDetails?.name as string,

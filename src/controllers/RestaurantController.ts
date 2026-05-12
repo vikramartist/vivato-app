@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Restaurant from "../models/restaurant.js";
+import { routeCache } from "../services/cache.js";
 
 const getAllRestaurants = async (req: Request, res: Response) => {
   try {
@@ -129,9 +130,63 @@ const searchRestaurants = async (req: Request, res: Response) => {
   }
 };
 
+const getRestaurantRoute = async (req: Request, res: Response) => {
+  try {
+    const { source, target } = req.body;
+
+    if (!source || !target) {
+      return res.status(400).json({ message: "Missing coordinates" });
+    }
+
+    const key = `${source.lng},${source.lat}_${target.lng},${target.lat}`;
+
+    //cache
+    if (routeCache.has(key)) {
+      return res.json(routeCache.get(key));
+    }
+
+    const response = await fetch(
+      `https://api.openrouteservice.org/v2/directions/driving-car/geojson`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: process.env.ors_api_key as string,
+        },
+        body: JSON.stringify({
+          coordinates: [
+            [source.lng, source.lat],
+            [target.lng, target.lat],
+          ],
+          geometry: true,
+          format: "geojson",
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    const route = data.features[0];
+
+    const result = {
+      distance: route.properties.distance,
+      duration: route.properties.duration,
+      geometry: route.geometry,
+    };
+
+    routeCache.set(key, result);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.log("Route API error:", error);
+    res.status(500).json({ message: "Route error" });
+  }
+};
+
 export default {
   searchRestaurants,
   getRestaurantById,
   getAllRestaurants,
   searchNearbyRestaurants,
+  getRestaurantRoute,
 };

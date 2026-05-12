@@ -28,4 +28,7 @@ router.get(
   RestaurantController.searchRestaurants,
 );
 
+// [POST] api/restaurant/route
+router.post("/route", RestaurantController.getRestaurantRoute);
+
 export default router;

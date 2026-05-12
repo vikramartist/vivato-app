@@ -39,7 +39,15 @@ const createCurrentUser = async (req: Request, res: Response) => {
 
 const updateCurrentUser = async (req: Request, res: Response) => {
   try {
-    const { name, addressLine1, country, city, contact } = req.body;
+    const {
+      name,
+      addressLine1,
+      country,
+      city,
+      contact,
+      profile_pic,
+      location,
+    } = req.body;
 
     const user = await User.findById(req.userId);
 
@@ -52,6 +60,14 @@ const updateCurrentUser = async (req: Request, res: Response) => {
     user.country = country;
     user.city = city;
     user.contact = contact;
+    user.profile_pic = profile_pic;
+
+    if (location) {
+      user.location = {
+        type: "Point",
+        coordinates: location.coordinates,
+      };
+    }
 
     await user.save();
 

@@ -22,6 +22,10 @@ export const validateMyUserRequest = [
     }
     return true;
   }),
+  body("profile_pic")
+    .isString()
+    .notEmpty()
+    .withMessage("Profile pic is required"),
   body("addressLine1")
     .isString()
     .notEmpty()

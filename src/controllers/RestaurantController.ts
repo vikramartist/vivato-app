@@ -133,6 +133,7 @@ const searchRestaurants = async (req: Request, res: Response) => {
 const getRestaurantRoute = async (req: Request, res: Response) => {
   try {
     const { source, target } = req.body;
+    console.log(source, target)
 
     if (!source || !target) {
       return res.status(400).json({ message: "Missing coordinates" });

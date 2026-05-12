@@ -167,7 +167,8 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
       },
     );
 
-    const data = await response.json();
+    const data = await response.json()
+    console.log(data)
 
     const route = data.features[0];
 

@@ -139,8 +139,10 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Missing coordinates" });
     }
 
-    const key = `${source.lng},${source.lat}_${target.lng},${target.lat}`;
+    console.log(routeCache)
 
+    const key = `${source.lng},${source.lat}_${target.lng},${target.lat}`;
+    console.log(key)
     //cache
     if (routeCache.has(key)) {
       return res.json(routeCache.get(key));

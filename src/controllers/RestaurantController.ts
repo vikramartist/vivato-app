@@ -140,8 +140,8 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
     }
 
     const key = generateRouteKey(
-      { lat: Number(source.lat), lng: Number(source.lng) },
-      { lat: Number(target.lat), lng: Number(target.lng) },
+      { lat: Number(source?.lat), lng: Number(source?.lng) },
+      { lat: Number(target?.lat), lng: Number(target?.lng) },
     );
 
     const cachedRoute = routeCache.get(key);
@@ -164,12 +164,12 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: process.env.ors_api_key as string,
+          Authorization: process.env.ORS_API_KEY as string,
         },
         body: JSON.stringify({
           coordinates: [
-            [Number(source.lng), Number(source.lat)],
-            [Number(target.lng), Number(target.lat)],
+            [Number(source?.lng), Number(source?.lat)],
+            [Number(target?.lng), Number(target?.lat)],
           ],
           geometry: true,
           format: "geojson",
@@ -178,6 +178,12 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
     );
 
     const data = await response.json();
+
+    if (!response.ok || !data.features?.length) {
+      return res
+        .status(500)
+        .json({ message: "Failed to fetch route", orsError: data });
+    }
 
     const route = data.features[0];
 

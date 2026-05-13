@@ -16,3 +16,4 @@ export const CC = process.env.CC;
 
 export const MAX_RESTAURANT_COUNT = 20;
 export const MAX_ADDRESS_UPDATES = 3;
+export const CACHE_DURATION = 1000 * 60 * 10;

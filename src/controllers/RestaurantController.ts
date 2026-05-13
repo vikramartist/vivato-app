@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import Restaurant from "../models/restaurant.js";
-import { routeCache } from "../services/cache.js";
+import { generateRouteKey, routeCache } from "../services/cache.js";
+import { CACHE_DURATION } from "../constants.js";
 
 const getAllRestaurants = async (req: Request, res: Response) => {
   try {
@@ -138,11 +139,23 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Missing coordinates" });
     }
 
-    const key = `${source.lng},${source.lat}_${target.lng},${target.lat}`;
+    const key = generateRouteKey(
+      { lat: Number(source.lat), lng: Number(source.lng) },
+      { lat: Number(target.lat), lng: Number(target.lng) },
+    );
+
+    const cachedRoute = routeCache.get(key);
 
     //cache
-    if (routeCache.has(key)) {
-      return res.json(routeCache.get(key));
+    if (cachedRoute) {
+      const isExpired = Date.now() - cachedRoute.timestamp > CACHE_DURATION;
+
+      if (!isExpired) {
+        console.log("Cached has key: ", key);
+        return res.json(cachedRoute.data);
+      }
+
+      routeCache.delete(key);
     }
 
     const response = await fetch(
@@ -155,8 +168,8 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
         },
         body: JSON.stringify({
           coordinates: [
-            [source.lng, source.lat],
-            [target.lng, target.lat],
+            [Number(source.lng), Number(source.lat)],
+            [Number(target.lng), Number(target.lat)],
           ],
           geometry: true,
           format: "geojson",
@@ -169,12 +182,12 @@ const getRestaurantRoute = async (req: Request, res: Response) => {
     const route = data.features[0];
 
     const result = {
-      distance: route.properties.distance,
-      duration: route.properties.duration,
+      distance: route.properties.summary.distance,
+      duration: route.properties.summary.duration,
       geometry: route.geometry,
     };
 
-    routeCache.set(key, result);
+    routeCache.set(key, { data: result, timestamp: Date.now() });
 
     res.status(200).json(result);
   } catch (error) {

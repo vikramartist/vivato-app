@@ -176,18 +176,15 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
   try {
     const { requestId } = req.params;
 
-    const { comments } = req.body;
+    const { comments, requestedRole } = req.body;
 
-    const updatedRequest = await RoleRequest.findByIdAndUpdate(
-      requestId,
-      {
-        status: "approved",
-        currentRole: "Owner",
-        updatedAt: new Date(),
-        comments,
-      },
-      { new: true },
-    );
+    if (!comments || !requestedRole) {
+      return res
+        .status(400)
+        .json({ message: "Commetn and requested role are required" });
+    }
+
+    const updatedRequest = await RoleRequest.findById(requestId);
 
     if (!updatedRequest) {
       return res.status(404).json({
@@ -195,13 +192,26 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
       });
     }
 
+    if (updatedRequest.status === "approved") {
+      return res.status(400).json({
+        message: "Request already approved",
+      });
+    }
+
+    updatedRequest.status = "approved";
+    updatedRequest.currentRole = requestedRole;
+    updatedRequest.comments = comments;
+    updatedRequest.updatedAt = new Date();
+
     const user = await User.findByIdAndUpdate(
       updatedRequest.userId,
       {
-        role: updatedRequest.requestedRole,
+        role: requestedRole,
       },
-      { returnDocument: "after" },
+      { new: true },
     ).lean();
+
+    await updatedRequest.save();
 
     // send email to user once they send the request
     inngest
@@ -210,9 +220,9 @@ export const approveRoleRequest = async (req: Request, res: Response) => {
         data: {
           email: user?.email as string,
           name: user?.name as string,
-          requestedRole: user?.role as string,
+          requestedRole: requestedRole as string,
           status: updatedRequest.status,
-          comments: updatedRequest.comments,
+          comments: updatedRequest.comments as string,
         },
       })
       .catch((error) => {
@@ -232,26 +242,25 @@ export const rejectRoleRequest = async (req: Request, res: Response) => {
 
     const { comments } = req.body;
 
-    const rejectedRequest = await RoleRequest.findByIdAndUpdate(
-      requestId,
-      {
-        status: "declined",
-        currentRole: "Customer",
-        updatedAt: new Date(),
-        comments,
-      },
-      { new: true },
-    );
+    const rejectedRequest = await RoleRequest.findById(requestId);
 
     if (!rejectedRequest) {
       return res.status(404).json({
         message: `Role request with the request ID:${requestId} not found`,
       });
     }
+    rejectedRequest.status = "declined";
+    rejectedRequest.currentRole = "Customer";
+    rejectedRequest.updatedAt = new Date();
+    rejectedRequest.comments = comments;
 
-    const user = await User.findByIdAndUpdate(rejectedRequest.userId, {
-      role: rejectedRequest.currentRole,
-    });
+    const user = await User.findByIdAndUpdate(
+      rejectedRequest.userId,
+      {
+        role: rejectedRequest.currentRole,
+      },
+      { new: true },
+    ).lean();
 
     // send email to user once they send the request
     inngest
@@ -260,9 +269,9 @@ export const rejectRoleRequest = async (req: Request, res: Response) => {
         data: {
           email: user?.email as string,
           name: user?.name as string,
-          requestedRole: user?.role as string,
+          requestedRole: rejectedRequest.currentRole as string,
           status: rejectedRequest.status,
-          comments: rejectedRequest.comments,
+          comments: rejectedRequest.comments as string,
         },
       })
       .catch((error) => {

@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import User from "../models/user.js";
 import { ADMIN_ID } from "../constants.js";
+import { generateRiderId } from "../utils/rider.js";
 
 const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -78,8 +79,89 @@ const updateCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
+const updateUserRiderProfile = async (req: Request, res: Response) => {
+  try {
+    const {
+      experience,
+      vehicleNumber,
+      drivingLicenseNumber,
+      vehicleType,
+      currentLocation,
+      deliveryRadiusKm,
+      workHours,
+      workingDays,
+    } = req.body;
+
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    let riderId = "";
+    let exists = true;
+
+    while (exists) {
+      riderId = generateRiderId(user?.name as string);
+      const existingUser = await User.findOne({ "riderInfo.riderId": riderId });
+
+      exists = !!existingUser;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $set: {
+          "riderInfo.riderId": riderId,
+          "riderInfo.experience": experience,
+          "riderInfo.vehicleNumber": vehicleNumber,
+          "riderInfo.drivingLicenseNumber": drivingLicenseNumber,
+          "riderInfo.vehicleType": vehicleType,
+          "riderInfo.currentLocation": {
+            type: "Point",
+            coordinates: [
+              Number(currentLocation.coordinates?.lng),
+              Number(currentLocation.coordinates?.lat),
+            ],
+          },
+          "riderInfo.deliveryRadiusKm": deliveryRadiusKm,
+          "riderInfo.workHours": workHours,
+          "riderInfo.workingDays": workingDays,
+          "riderInfo.lastLocationUpdatedAt": new Date(),
+          "riderInfo.lastActiveAt": new Date(),
+        },
+      },
+      { new: true, runValidators: true },
+    );
+
+    await updatedUser?.save();
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error in rider profile controller!" });
+  }
+};
+
+const getRiderProfile = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findOne({ _id: req.userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user.riderInfo);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to get rider" });
+  }
+};
+
 export default {
   getCurrentUser,
   createCurrentUser,
   updateCurrentUser,
+  updateUserRiderProfile,
+  getRiderProfile,
 };

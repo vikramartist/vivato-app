@@ -36,7 +36,7 @@ const userSchema = new Schema(
     ],
     role: {
       type: String,
-      enum: ["Customer", "Owner", "Admin"],
+      enum: ["Customer", "Owner", "Rider", "Admin"],
       default: "Customer",
     },
     location: {
@@ -48,10 +48,96 @@ const userSchema = new Schema(
         type: [Number],
       },
     },
+    riderInfo: {
+      type: new Schema({
+        isAvailable: {
+          type: Boolean,
+          default: false,
+        },
+        riderId: { type: String, unique: true, sparse: true },
+        experience: { type: Number, default: 0 },
+        vehicleNumber: {
+          type: String,
+          required: function () {
+            return this.role === "Rider";
+          },
+        },
+        drivingLicenseNumber: {
+          type: String,
+          required: function () {
+            return this.role === "Rider";
+          },
+        },
+        vehicleType: {
+          type: String,
+          enum: ["Bike", "Scooter", "EV-Bike", "EV-Scooter"],
+        },
+        currentLocation: {
+          type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+          },
+          coordinates: {
+            type: [Number],
+            default: [0, 0],
+          },
+        },
+        deliveryRadiusKm: { type: Number, default: 10 },
+        totalDeliveries: {
+          type: Number,
+          default: 0,
+        },
+        workHours: {
+          start: { type: String },
+          end: { type: String },
+        },
+        workingDays: [
+          {
+            type: String,
+            enum: [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ],
+          },
+        ],
+        lastLocationUpdatedAt: { type: Date },
+        averageRating: {
+          type: Number,
+          min: 0,
+          max: 5,
+          default: 0,
+        },
+        lastActiveAt: { type: Date },
+        totalEarnings: {
+          type: Number,
+          default: 0,
+        },
+        activeOrder: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Order",
+        },
+        isVerified: {
+          type: Boolean,
+          default: false,
+        },
+        status: {
+          type: String,
+          enum: ["Offline", "Online", "Busy", "Leave"],
+          default: "Offline",
+        },
+      }),
+      default: undefined,
+    },
   },
   { timestamps: true },
 );
-userSchema.index({ location: "2dsphere" });
+userSchema.index({ "riderInfo.currentLocation": "2dsphere" });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ restaurants: -1 });
 userSchema.index({ role: 1 });

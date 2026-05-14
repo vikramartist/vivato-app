@@ -47,8 +47,7 @@ export const validateMyRoleRequest = [
   body("currentRole")
     .isString()
     .notEmpty()
-    .withMessage("Current Role must be a string")
-    .optional(),
+    .withMessage("Current Role must be a string"),
   body("comments")
     .isString()
     .notEmpty()
@@ -159,4 +158,58 @@ export const validateMYRestaurantRequest = [
     .isEmpty()
     .withMessage("Service timings closing date is required"),
   handleValidationErrors,
+];
+
+export const validateMyRiderUserProfileRequest = [
+  body("riderId").isString().notEmpty().optional(),
+  body("isAvailable")
+    .isBoolean()
+    .withMessage("isAvailable is required")
+    .optional(),
+  body("experience")
+    .isFloat({ min: 0, max: 50 })
+    .withMessage("Experience must be positive and between 0 and 50"),
+  body("vehicleNumber")
+    .isString()
+    .matches(/^[A-Z]{2}\d{1,2}[A-Z]{1,2}\d{4}$/)
+    .withMessage("Invalid Vehicle number")
+    .notEmpty()
+    .withMessage("Vehicle number is required"),
+  body("drivingLicenseNumber")
+    .isString()
+    .matches(/^[A-Z]{2}\d{2}\d{4}\d{7}$/)
+    .withMessage("Invalid driving license number")
+    .withMessage("Invalid vehicle type")
+    .notEmpty()
+    .withMessage("drivingLicenseNumber is required"),
+  body("vehicleType")
+    .isIn(["Bike", "Scooter", "EV-Bike", "EV-Scooter"])
+    .notEmpty()
+    .withMessage("drivingLicenseNumber is required"),
+  body("currentLocation.coordinates")
+    .optional()
+    .isArray({ min: 2, max: 2 })
+    .withMessage("Coordinates must contain [Lng,Lat]"),
+  body("currentLocation.coordinates.*")
+    .optional()
+    .isFloat()
+    .withMessage("Coordinates must be numbers"),
+  body("workingDays").isArray().withMessage("working days must be array"),
+  body("workingDays.*")
+    .isIn([
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ])
+    .withMessage("Invalid working days"),
+  body("workHours.start")
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage("Invalid start time"),
+  body("workHours.end")
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    .withMessage("Invalid end time"),
 ];

@@ -4,6 +4,7 @@ const orderSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant" },
+    assignedRider: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     restaurantName: { type: String, required: true },
     deliveryDetails: {
       email: { type: String, required: true },
@@ -31,11 +32,14 @@ const orderSchema = new mongoose.Schema(
         "pending",
         "confirmed",
         "preparing",
-        "outForDelivery",
+        "readyForPickup",
+        "pickedUp",
         "delivered",
         "cancelled",
       ],
     },
+    assignedAt: { type: Date },
+    deliveredAt: { type: Date },
     createdAt: { type: Date, default: Date.now() },
   },
   { timestamps: true },

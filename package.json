@@ -34,7 +34,8 @@
     "nominatim-client": "^3.2.1",
     "nominatim-geocoder": "^0.1.4",
     "razorpay": "^2.9.6",
-    "resend": "^6.10.0"
+    "resend": "^6.10.0",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -42,6 +43,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
     "@types/nodemailer": "^8.0.0",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",

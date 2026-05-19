@@ -85,3 +85,38 @@ export const validateUserRole = async (
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const validateRiderRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    if (user.role.toLowerCase() !== "rider") {
+      console.warn(
+        `Forbidden: User with role ${user.role} tried to delivery orders`,
+      );
+
+      return res.status(403).json({
+        message: "Forbidden: Only Riders can delivery orders",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.log("Server error in validating Rider", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

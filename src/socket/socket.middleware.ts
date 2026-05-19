@@ -24,6 +24,10 @@ export const socketAuthMiddleware = async (
       return next(new Error("User not found"));
     }
 
+    if (user.role !== "Rider") {
+      return next(new Error("Unauthorized access"));
+    }
+
     socket.data.userId = user._id.toString();
     socket.data.auth0Id = auth0Id;
 

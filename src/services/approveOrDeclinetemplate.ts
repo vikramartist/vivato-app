@@ -30,7 +30,7 @@ export const approveOrDeclineRoleRequest = ({
         </p>
 
         <p style="color: #555; font-size: 14px; line-height: 1.6;">
-          ${requestStatus === "approved" ? "Our team has approved your role change request application. Now you are able to Create your Restaurants and manage them 🚀" : "Our Team has rejected your role change request application. Go through the comments below to understand why it got rejected. Thanks for your co-pperation. You'll be able to create a new role request in some time"} 
+          ${requestStatus === "approved" ? (currentRole === "Rider" ? "Our team has approved your role change request application from Customer to Rider. Now you able to accept/reject new orders and deliver them🚀. Happy Vivatoing" : "Now you are able to Create your Restaurants and manage them 🚀. Happy Vivatoing") : "Our Team has rejected your role change request application. Go through the comments below to understand why it got rejected. Thanks for your co-operation. You'll be able to create a new role request in some time"} 
         </p>
 
         <!-- Status Box -->

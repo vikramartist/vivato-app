@@ -290,7 +290,7 @@ const updateOrderStatus = async (req: Request, res: Response) => {
           },
         })
         .catch((error) => {
-          console.error(`[INNGEST_ERROR] in deliivery success mailer:${error}`);
+          console.error(`[INNGEST_ERROR] in delivery success mailer:${error}`);
         });
     }
 

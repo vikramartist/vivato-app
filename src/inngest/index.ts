@@ -171,7 +171,7 @@ const deliverySuccessfullMail = inngest.createFunction(
       const { data, error } = await resend.emails.send({
         from: RESEND_ADMIN,
         to: deliveryDetails?.email as string,
-        cc: [CC, riderDetails?.email as string],
+        cc: [CC, riderDetails?.email as string, ADMIN_ID],
         subject: "Order Delivered - Vivato",
         html: orderSuccessTemplate({
           callbackUrl: CALLBACK_URL,

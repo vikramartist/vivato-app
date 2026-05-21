@@ -72,5 +72,7 @@ restaurantSchema.index({
   cuisines: "text",
 });
 
+export type RestaurantDetails = InferSchemaType<typeof restaurantSchema>;
+
 const Restaurant = mongoose.model("Restaurant", restaurantSchema);
 export default Restaurant;

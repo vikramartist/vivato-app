@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import MyUserController from "../controllers/MyUserController.js";
-import { jwtCheck, jwtParse } from "../middleware/auth.js";
+import { jwtCheck, jwtParse, validateRiderRole } from "../middleware/auth.js";
 import {
   validateMyRiderUserProfileRequest,
   validateMyUserRequest,
@@ -14,6 +14,36 @@ router.get(
   jwtCheck,
   jwtParse,
   MyUserController.getRiderProfile,
+);
+
+router.get(
+  "/rider/:riderId",
+  jwtCheck,
+  jwtParse,
+  MyUserController.getRiderById,
+);
+
+router.get(
+  "/rider-order/:riderId",
+  jwtCheck,
+  jwtParse,
+  validateRiderRole,
+  MyUserController.getMyRiderOrders,
+);
+
+router.patch(
+  "/rider-order/:orderId/accept",
+  jwtCheck,
+  jwtParse,
+  validateRiderRole,
+  MyUserController.acceptRide,
+);
+router.patch(
+  "/rider-order/:orderId/reject",
+  jwtCheck,
+  jwtParse,
+  validateRiderRole,
+  MyUserController.rejectRide,
 );
 
 // [POST] /api/my/user
@@ -31,6 +61,7 @@ router.put(
   "/update-rider",
   jwtCheck,
   jwtParse,
+  validateRiderRole,
   validateMyRiderUserProfileRequest,
   MyUserController.updateUserRiderProfile,
 );

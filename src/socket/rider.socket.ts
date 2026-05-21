@@ -1,5 +1,6 @@
 import type { Socket } from "socket.io";
 import User from "../models/user.js";
+import Order from "../models/order.js";
 
 export const registerRiderHandlers = (socket: Socket) => {
   socket.on("rider-online", async () => {
@@ -16,16 +17,17 @@ export const registerRiderHandlers = (socket: Socket) => {
     });
   });
 
-  socket.on("rider-offline", async (callback) => {
+  socket.on("rider-offline", async (callback?: () => void) => {
     await User.findByIdAndUpdate(socket.data.userId, {
       "riderInfo.isAvailable": false,
+      socketId: null,
       "riderInfo.lastActiveAt": new Date(),
     });
 
-    callback();
+    callback?.();
   });
 
   socket.on("disconnect", async () => {
-    console.log("Disconnected");
+    console.log("socket Disconnected");
   });
 };

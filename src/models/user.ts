@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, type InferSchemaType } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -49,6 +49,9 @@ const userSchema = new Schema(
         type: [Number],
         default: [0, 0],
       },
+    },
+    socketId: {
+      type: String,
     },
     riderInfo: {
       type: new Schema({
@@ -145,6 +148,8 @@ userSchema.index({ restaurants: -1 });
 userSchema.index({ role: 1 });
 userSchema.index({ role: 1, email: 1 });
 userSchema.index({ contact: 1 });
+
+export type UserDetails = InferSchemaType<typeof userSchema>;
 
 const User = mongoose.model("User", userSchema);
 export default User;

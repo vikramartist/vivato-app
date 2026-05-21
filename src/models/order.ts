@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { type InferSchemaType } from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
@@ -39,11 +39,14 @@ const orderSchema = new mongoose.Schema(
       ],
     },
     assignedAt: { type: Date },
-    deliveredAt: { type: Date },
+    deliveredAt: { type: Date, default: Date.now() },
     createdAt: { type: Date, default: Date.now() },
+    updatedAt: { type: Date },
   },
   { timestamps: true },
 );
+
+export type OrderDetails = InferSchemaType<typeof orderSchema>;
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

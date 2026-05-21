@@ -12,6 +12,7 @@ import { functions, inngest } from "./inngest/index.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { setupSocket } from "./socket/socket.js";
+import { markInactiveRidersOffline } from "./utils/rider.js";
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING as string).then(() => {
   console.log("Connected to database!");
@@ -41,6 +42,11 @@ app.use("/api/my/role-requests", myUserRoleRequest);
 app.use("/api/my/restaurant", myRestaurantRoute);
 app.use("/api/restaurant", restaurantRoute);
 app.use("/api/v1/order", orderRoute);
+
+//cleanup inactive users
+setInterval(async () => {
+  await markInactiveRidersOffline();
+}, 60000);
 
 httpServer.listen(8000, () => {
   console.log("App running on port 8000");

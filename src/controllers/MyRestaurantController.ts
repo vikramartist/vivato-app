@@ -1,10 +1,13 @@
 import type { Request, Response } from "express";
 import User from "../models/user.js";
-import Restaurant from "../models/restaurant.js";
+import Restaurant, { type RestaurantDetails } from "../models/restaurant.js";
 import mongoose from "mongoose";
 import { MAX_ADDRESS_UPDATES, MAX_RESTAURANT_COUNT } from "../constants.js";
 import { getCoords } from "../services/getCoords.js";
-import Order from "../models/order.js";
+import Order, { type OrderDetails } from "../models/order.js";
+import { isRiderEligible } from "../utils/rider.js";
+import { io } from "../index.js";
+import { inngest } from "../inngest/index.js";
 
 const getMyRestaurants = async (req: Request, res: Response) => {
   try {
@@ -237,13 +240,10 @@ const updateOrderStatus = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    const restaurant = await Restaurant.findOne({
-      _id: restaurantId,
-      user: req.userId,
-    });
+    const restaurant = await Restaurant.findById(restaurantId);
 
-    if (restaurant?.user._id.toString() !== req.userId) {
-      return res.status(401).send();
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found!" });
     }
 
     if (order.restaurant?.toString() !== restaurantId) {
@@ -253,13 +253,96 @@ const updateOrderStatus = async (req: Request, res: Response) => {
     }
 
     order.status = status;
+    order.updatedAt = new Date();
+
+    if (status === "delivered") {
+      const riderDetails = await User.findByIdAndUpdate(
+        order.assignedRider,
+        {
+          "riderInfo.status": "Online",
+          $inc: { "riderInfo.totalDeliveries": 1 },
+          $set: { "riderInfo.lastActiveAt": new Date() },
+        },
+        { new: true },
+      );
+
+      order.deliveredAt = new Date();
+
+      inngest
+        .send({
+          name: "delivery/success",
+          data: {
+            deliveryDetails: order.deliveryDetails,
+            id: order._id,
+            status,
+            createdAt: order.createdAt,
+            restaurantName: order.restaurantName,
+            totalAmount: order.totalAmount,
+            riderDetails: {
+              name: riderDetails?.name,
+              email: riderDetails?.email,
+              contact: riderDetails?.contact,
+              riderId: riderDetails?.riderInfo?.riderId,
+              vehicleType: riderDetails?.riderInfo?.vehicleType,
+              vehicleNumber: riderDetails?.riderInfo?.vehicleNumber,
+              deliveredAt: order.deliveredAt,
+            },
+          },
+        })
+        .catch((error) => {
+          console.error(`[INNGEST_ERROR] in deliivery success mailer:${error}`);
+        });
+    }
+
     await order.save();
+
+    if (status === "readyForPickup") {
+      const eligibleRiders = await handleOrderStatusChange(
+        restaurant._id.toString(),
+      );
+
+      if (!eligibleRiders?.length) {
+        return res.status(400).json({
+          message: "No eligible riders found!",
+        });
+      }
+
+      eligibleRiders.forEach((rider) => {
+        console.log("sending to rider", rider.socketId);
+        if (rider.socketId) {
+          io.to(rider.socketId).emit("updated-order", order);
+        }
+      });
+    }
 
     res.status(200).json(order);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
   }
+};
+
+const handleOrderStatusChange = async (restaurantId?: string) => {
+  const riders = await User.find({
+    role: "Rider",
+    "riderInfo.isAvailable": true,
+  });
+
+  if (!riders || riders.length === 0) {
+    return null;
+  }
+
+  const restaurant = await Restaurant.findById(restaurantId);
+
+  if (!restaurant) {
+    return null;
+  }
+
+  const eligibleRiders = riders.filter((rider) => {
+    return isRiderEligible(rider, restaurant);
+  });
+
+  return eligibleRiders;
 };
 
 export default {

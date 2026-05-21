@@ -1,7 +1,11 @@
 import { type Request, type Response } from "express";
 import User from "../models/user.js";
 import { ADMIN_ID } from "../constants.js";
-import { generateRiderId } from "../utils/rider.js";
+import { generateRiderId, isRiderEligible } from "../utils/rider.js";
+import type { OrderDetails } from "../models/order.js";
+import Order from "../models/order.js";
+import type { RestaurantDetails } from "../models/restaurant.js";
+import { io } from "../index.js";
 
 const getCurrentUser = async (req: Request, res: Response) => {
   try {
@@ -158,10 +162,159 @@ const getRiderProfile = async (req: Request, res: Response) => {
   }
 };
 
+const getMyRiderOrders = async (req: Request, res: Response) => {
+  try {
+    const { riderId } = req.params;
+
+    const riderUser = await User.findById(req.userId);
+
+    if (!riderUser) {
+      return res.status(404).json({ message: "Rider not found!" });
+    }
+
+    if (riderUser.riderInfo?.riderId !== riderId) {
+      return res.status(404).json({ message: "Invalid Rider" });
+    }
+
+    const orders = await Order.find({
+      $or: [
+        {
+          status: "readyForPickup",
+          assignedRider: null,
+        },
+        {
+          assignedRider: riderUser._id,
+        },
+      ],
+    })
+      .populate("user")
+      .populate("restaurant");
+
+    if (!riderUser.riderInfo?.isAvailable) {
+      return res.status(200).json([]);
+    }
+
+    const filteredOrders = orders.filter((order) => {
+      if (order.assignedRider?.toString() === riderUser._id.toString()) {
+        return true;
+      }
+
+      return isRiderEligible(
+        riderUser,
+        order.restaurant as unknown as RestaurantDetails,
+      );
+    });
+
+    res.status(200).json(filteredOrders);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Rider order fetch failed", error });
+  }
+};
+
+const acceptRide = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const rider = await User.findById(req.userId);
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found!" });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, assignedRider: null, status: "readyForPickup" },
+      { assignedRider: rider._id },
+      { new: true },
+    );
+
+    if (!order) {
+      return res.status(400).json({
+        message: "Order already accepted or unavailable",
+      });
+    }
+
+    io.emit("updated-order", order);
+
+    await User.findByIdAndUpdate(
+      rider._id,
+      {
+        "riderInfo.status": "Busy",
+        "riderInfo.activeOrder": order,
+      },
+      { new: true },
+    );
+
+    res.status(200).json({ message: "Order accepted" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to accept order", error });
+  }
+};
+
+const rejectRide = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const rider = await User.findById(req.userId);
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found!" });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { _id: orderId, assignedRider: null, status: "readyForPickup" },
+      { assignedRider: null },
+      { new: true },
+    );
+
+    if (!order) {
+      return res.status(400).json({
+        message: "Order already rejected or unavailable",
+      });
+    }
+
+    io.emit("updated-order", order);
+
+    await User.findByIdAndUpdate(
+      rider._id,
+      {
+        "riderInfo.status": "Online",
+        "riderInfo.activeOrder": null,
+      },
+      { new: true },
+    );
+
+    res.status(200).json({ message: "Order rejected" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to reject order", error });
+  }
+};
+
+const getRiderById = async (req: Request, res: Response) => {
+  try {
+    const { riderId } = req.params;
+
+    const rider = await User.findById(riderId);
+
+    if (!rider) {
+      return res.status(404).json({ message: "Rider not found!" });
+    }
+
+    res.status(200).json(rider);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to get rider By Id" });
+  }
+};
+
 export default {
   getCurrentUser,
   createCurrentUser,
   updateCurrentUser,
   updateUserRiderProfile,
   getRiderProfile,
+  getMyRiderOrders,
+  acceptRide,
+  rejectRide,
+  getRiderById,
 };

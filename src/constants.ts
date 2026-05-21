@@ -10,6 +10,10 @@ if (!process.env.ADMIN_ID) {
   throw new Error("ADMIN_ID env not set properly!");
 }
 
+if (!process.env.RESEND_ADMIN) {
+  throw new Error("RESEND_ADMIN env not set properly!");
+}
+
 export const ADMIN_ID = process.env.ADMIN_ID;
 export const CALLBACK_URL = process.env.CALLBACK_URL;
 export const CC = process.env.CC;
@@ -17,3 +21,5 @@ export const CC = process.env.CC;
 export const MAX_RESTAURANT_COUNT = 20;
 export const MAX_ADDRESS_UPDATES = 3;
 export const CACHE_DURATION = 1000 * 60 * 10;
+export const RESEND_ADMIN = process.env.RESEND_ADMIN;
+export const OFFLINE_THRESHOLD = 60 * 1000;

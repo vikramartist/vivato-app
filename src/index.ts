@@ -13,6 +13,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import { setupSocket } from "./socket/socket.js";
 import { markInactiveRidersOffline } from "./utils/rider.js";
+import aiRoute from "./routes/AiSearch.js";
 
 mongoose.connect(process.env.MONGO_CONNECTION_STRING as string).then(() => {
   console.log("Connected to database!");
@@ -24,6 +25,7 @@ export const io = new Server(httpServer, {
   cors: {
     origin: process.env.CALLBACK_URL,
     credentials: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 });
 
@@ -42,6 +44,7 @@ app.use("/api/my/role-requests", myUserRoleRequest);
 app.use("/api/my/restaurant", myRestaurantRoute);
 app.use("/api/restaurant", restaurantRoute);
 app.use("/api/v1/order", orderRoute);
+app.use("/api/v1/ai", aiRoute);
 
 //cleanup inactive users
 setInterval(async () => {
